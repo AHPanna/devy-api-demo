@@ -75,17 +75,11 @@ app.config['ENV'] = 'development'
 app.config['DEBUG'] = True
 app.config['TESTING'] = True
 
-# this will return only item info : json object
-@app.route('/id/<uniqueItem>', methods=['GET', 'POST'])
-def sendItem(uniqueItem):
-    return "uniqueItem {}!".format(uniqueItem)
 
-
-# this will return list of items info searched : json object
-@app.route('/find/<listItems>', methods=['GET', 'POST'])
-def findItem(listItems):
-    return "listItems {}!".format(listItems)
-
+@app.route('/id/<id_item>', methods=['GET'])
+@cross_origin()
+def find_ads(id_item):
+    return jsonify(searchData['Items']["{}".format(id_item)])
 
 @app.route('/index', methods=['GET'])
 @cross_origin()
@@ -126,7 +120,6 @@ def create():
         }
         searchData['Items']["{}".format(id_unique)] = newDatas
     return jsonify("created: {}".format(str(uuid.uuid4())))
-
 
 
 if __name__ == '__main__':
