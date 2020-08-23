@@ -59,14 +59,12 @@ searchData = {  "id": "2145",
                 "Response": "true",
             }
 
-
 # Use flask 
 from flask import Flask, render_template, jsonify, request
 from flask_cors import CORS, cross_origin
+import uuid, os, glob
 
-
-
-app = Flask(__name__)
+app = Flask(__name__,static_url_path="/images", static_folder="images")
 cors = CORS(app)
 app.config['CORS_HEADERS'] = 'Content-Type'
 
@@ -89,7 +87,7 @@ def findItem(listItems):
     return "listItems {}!".format(listItems)
 
 
-@app.route('/index', methods=['GET', 'POST'])
+@app.route('/index', methods=['GET'])
 @cross_origin()
 def index():
     return jsonify(searchData)
@@ -97,11 +95,42 @@ def index():
 @app.route('/cookies', methods=['GET', 'POST'])
 @cross_origin()
 def cookies():
-    
     print(dir(request.cookies))
     print(type(request.cookies.values))
     #return request.cookies.get('token')
 
+id_unique = 4
+@app.route('/create', methods=['POST'])
+@cross_origin()
+def create():
+    global id_unique # global int variable increment each time for this demo. 
+    data_images = []
+    files = request.files.getlist("files")
+    for file in files:
+            file.save(os.path.join('images', file.filename))
+            data_images.append("http://127.0.0.1:8081/images/{}".format(file.filename))
+    jsonData = request.form.to_dict() 
+    print (jsonData)
+    if(request.form):
+        newDatas = {
+            'id':"{}".format(id_unique),
+            "title":jsonData['title'],
+            'nom':jsonData['nom'],
+            'email':jsonData['email'],
+            'phone':jsonData['phone'],
+            'categories':jsonData['categories'],
+            'description':jsonData['description'],
+            'lieu':jsonData['lieu'],
+            'dateAjouter':jsonData['dateAdded'],
+            'images': data_images
+        }
+        searchData['Items']["{}".format(id_unique)] = newDatas
+    return jsonify("created: {}".format(str(uuid.uuid4())))
+
+
 
 if __name__ == '__main__':
+    # let's clear the history of uploads
+    for filesToRemove in glob.glob("images/*"):
+        os.remove(filesToRemove)
     app.run(host='0.0.0.0', port='8081')
